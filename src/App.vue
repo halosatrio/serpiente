@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { COL_LENGTH, DOWN, LEFT, RIGHT, ROW_LENGTH, UP } from '@/constants'
+import { COL_LENGTH, ROW_LENGTH, LEFT, RIGHT, UP, DOWN } from '@/constants'
 import type { Direction, RowCol, SnakeBody } from '@/types'
 import Snake from '@/classes/snake'
 
@@ -27,17 +27,19 @@ const generateFood = (body: SnakeBody) => {
   return rowCols[randomIndex]
 }
 
+let windowWidth = ref(window.innerWidth)
+
 const snake = ref(new Snake())
-// const snakeBody = ref(snake.value.body)
-// const snakeLength = ref(snake.value.length)
+const snakeBody = ref(snake.value.body)
+const snakeLength = ref(snake.value.length)
 const food = ref<RowCol>(generateFood(snake.value.body))
 const direction = ref<Direction>(snake.value.currentDirection)
 const intervalId = ref<NodeJS.Timeout | null>(null)
 const isGameOver = ref(false)
 
 // Optional computed properties
-const snakeBody = computed(() => snake.value.body)
-const snakeLength = computed(() => snake.value.length)
+// const snakeBody = computed(() => snake.value.body)
+// const snakeLength = computed(() => snake.value.length)
 
 const resetGameState = () => {
   snake.value = new Snake()
@@ -53,6 +55,8 @@ const startTimer = () => {
   const id = setInterval(() => {
     try {
       const { length, body, isFoodEaten } = snake.value.moveOneStep(direction.value, food.value)
+      snakeBody.value = body
+      snakeLength.value = length
       if (isFoodEaten) {
         food.value = generateFood(body)
       }
@@ -134,20 +138,82 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col items-center w-full">
-    <p class="text-sm mb-6">
+    <p v-if="!(windowWidth <= 640)" class="text-sm mb-6">
       Press arrow keys (↑, →, ↓, ←) to change direction. Press Enter or Space to start and pause.
     </p>
 
-    <div class="py-2 text-sm">Length:</div>
+    <div class="py-2 text-sm">Length: {{ snakeLength }}</div>
+
     <div class="relative flex flex-col w-full lg:w-[unset]">
+      <!-- if game over -->
       <div
+        v-if="isGameOver"
+        @click="startTimer"
+        class="absolute left-0 right-0 bottom-0 top-0 z-9 bg-black bg-opacity-75 flex flex-col items-center justify-center cursor-pointer"
+      >
+        <div class="absolute top-[30px] flex flex-col items-center">
+          <div class="text-white text-3xl mb-1">Game Over</div>
+          <div class="text-white mb-1">Final length: {{ snakeLength }}</div>
+
+          <div v-if="windowWidth <= 640" class="text-white">Click to play again!</div>
+          <div v-else class="text-white">Click or press Enter or Space to play again!</div>
+        </div>
+      </div>
+      <!-- end if game over -->
+
+      <!-- if not game over -->
+      <div
+        v-if="windowWidth <= 640 && !isGameOver && intervalId === null"
+        @click="startTimer"
         class="absolute left-0 right-0 bottom-0 top-0 z-9 bg-black bg-opacity-75 flex flex-col items-center justify-center cursor-pointer"
       >
         <div class="absolute top-[30px] flex flex-col items-center">
           <div class="text-white text-3xl mb-1">Click to play!</div>
         </div>
       </div>
+      <!-- end if not game over -->
+
+      <div
+        :style="{
+          gridTemplateColumns: `repeat(${COL_LENGTH}, ${windowWidth <= 640 ? '1fr' : '15px'})`,
+        }"
+        class="grid"
+      >
+        <div v-for="(rows, i) in grid" :key="i">
+          <div
+            v-for="(_, j) in rows"
+            :key="j"
+            :class="[
+              'aspect-square',
+              snakeBody[JSON.stringify([i, j])]
+                ? 'bg-black'
+                : JSON.stringify([i, j]) === JSON.stringify(food)
+                  ? 'bg-purple-500'
+                  : 'bg-blue-50',
+            ]"
+          ></div>
+        </div>
+      </div>
     </div>
+    <!-- if game over -->
+  </div>
+
+  <div v-if="windowWidth <= 640" class="flex flex-col gap-[3px] p-8">
+    <button class="flex justify-center" @click="changeDirection(UP)">
+      <img alt="arrow up" class="w-[50px]" />
+    </button>
+    <div class="flex gap-[50px]">
+      <button @click="changeDirection(LEFT)">
+        <img alt="arrow left" class="w-[50px]" />
+      </button>
+
+      <button @click="changeDirection(RIGHT)">
+        <img alt="arrow right" class="w-[50px]" />
+      </button>
+    </div>
+    <button class="flex justify-center" @click="changeDirection(DOWN)">
+      <img alt="arrow down" class="w-[50px]" />
+    </button>
   </div>
 </template>
 
