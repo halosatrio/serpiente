@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { COL_LENGTH, DOWN, LEFT, RIGHT, ROW_LENGTH, UP } from '@/constants'
 import type { Direction, RowCol, SnakeBody } from '@/types'
 import Snake from '@/classes/snake'
@@ -28,12 +28,108 @@ const generateFood = (body: SnakeBody) => {
 }
 
 const snake = ref(new Snake())
-const snakeBody = ref(snake.value.body)
-const snakeLength = ref(snake.value.length)
-const food = ref<RowCol>(generateFood(snakeBody.value))
+// const snakeBody = ref(snake.value.body)
+// const snakeLength = ref(snake.value.length)
+const food = ref<RowCol>(generateFood(snake.value.body))
 const direction = ref<Direction>(snake.value.currentDirection)
 const intervalId = ref<NodeJS.Timeout | null>(null)
 const isGameOver = ref(false)
+
+// Optional computed properties
+const snakeBody = computed(() => snake.value.body)
+const snakeLength = computed(() => snake.value.length)
+
+const resetGameState = () => {
+  snake.value = new Snake()
+  food.value = generateFood(snake.value.body)
+  direction.value = snake.value.currentDirection
+  isGameOver.value = false
+  intervalId.value = null
+}
+
+const startTimer = () => {
+  if (isGameOver.value) resetGameState()
+
+  const id = setInterval(() => {
+    try {
+      const { length, body, isFoodEaten } = snake.value.moveOneStep(direction.value, food.value)
+      if (isFoodEaten) {
+        food.value = generateFood(body)
+      }
+    } catch (e) {
+      isGameOver.value = true
+      stopTimer()
+    }
+  }, 130)
+  intervalId.value = id
+}
+
+const stopTimer = () => {
+  if (intervalId.value) {
+    clearInterval(intervalId.value)
+    intervalId.value = null
+  }
+}
+
+const changeDirection = (direction: Direction) => {
+  switch (direction) {
+    case UP:
+      if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[UP])
+        direction = UP
+      break
+    case DOWN:
+      if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[DOWN])
+        direction = DOWN
+      break
+    case LEFT:
+      if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[LEFT])
+        direction = LEFT
+      break
+    default:
+      if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[RIGHT])
+        direction = RIGHT
+      break
+  }
+}
+
+const handleKeyDown = (event: KeyboardEvent) => {
+  switch (event.key) {
+    case 'ArrowUp':
+      changeDirection(UP)
+      break
+    case 'ArrowDown':
+      changeDirection(DOWN)
+      break
+    case 'ArrowLeft':
+      changeDirection(LEFT)
+      break
+    case 'ArrowRight':
+      changeDirection(RIGHT)
+      break
+    case 'Enter':
+      if (intervalId.value !== null) stopTimer()
+      else startTimer()
+      break
+    case ' ':
+      if (intervalId.value !== null) stopTimer()
+      else startTimer()
+      break
+    default:
+      break
+  }
+}
+
+onMounted(() => {
+  window.addEventListener('keydown', handleKeyDown)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyDown)
+  // Cleanup interval
+  if (intervalId.value) {
+    clearInterval(intervalId.value)
+  }
+})
 </script>
 
 <template>
