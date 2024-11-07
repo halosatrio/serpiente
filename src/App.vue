@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { COL_LENGTH, ROW_LENGTH, LEFT, RIGHT, UP, DOWN } from '@/constants'
+import { onMounted, onUnmounted, ref } from 'vue'
+import { COL_LENGTH, ROW_LENGTH, LEFT, RIGHT, UP, DOWN, IS_MOBILE } from '@/constants'
 import type { Direction, RowCol, SnakeBody } from '@/types'
 import Snake from '@/classes/snake'
 
@@ -27,8 +27,6 @@ const generateFood = (body: SnakeBody) => {
   return rowCols[randomIndex]
 }
 
-let windowWidth = ref(window.innerWidth)
-
 const snake = ref(new Snake())
 const snakeBody = ref(snake.value.body)
 const snakeLength = ref(snake.value.length)
@@ -36,10 +34,6 @@ const food = ref<RowCol>(generateFood(snake.value.body))
 const direction = ref<Direction>(snake.value.currentDirection)
 const intervalId = ref<NodeJS.Timeout | null>(null)
 const isGameOver = ref(false)
-
-// Optional computed properties
-// const snakeBody = computed(() => snake.value.body)
-// const snakeLength = computed(() => snake.value.length)
 
 const resetGameState = () => {
   snake.value = new Snake()
@@ -75,23 +69,23 @@ const stopTimer = () => {
   }
 }
 
-const changeDirection = (direction: Direction) => {
-  switch (direction) {
+const changeDirection = (dir: Direction) => {
+  switch (dir) {
     case UP:
       if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[UP])
-        direction = UP
+        direction.value = UP
       break
     case DOWN:
       if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[DOWN])
-        direction = DOWN
+        direction.value = DOWN
       break
     case LEFT:
       if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[LEFT])
-        direction = LEFT
+        direction.value = LEFT
       break
     default:
       if (intervalId.value !== null && snake.value.currentDirection !== oppositeDirection[RIGHT])
-        direction = RIGHT
+        direction.value = RIGHT
       break
   }
 }
@@ -138,7 +132,7 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col items-center w-full">
-    <p v-if="!(windowWidth <= 640)" class="text-sm mb-6">
+    <p v-if="!IS_MOBILE" class="text-sm mb-6">
       Press arrow keys (↑, →, ↓, ←) to change direction. Press Enter or Space to start and pause.
     </p>
 
@@ -155,7 +149,7 @@ onUnmounted(() => {
           <div class="text-white text-3xl mb-1">Game Over</div>
           <div class="text-white mb-1">Final length: {{ snakeLength }}</div>
 
-          <div v-if="windowWidth <= 640" class="text-white">Click to play again!</div>
+          <div v-if="IS_MOBILE" class="text-white">Click to play again!</div>
           <div v-else class="text-white">Click or press Enter or Space to play again!</div>
         </div>
       </div>
@@ -163,7 +157,7 @@ onUnmounted(() => {
 
       <!-- if not game over -->
       <div
-        v-if="windowWidth <= 640 && !isGameOver && intervalId === null"
+        v-if="IS_MOBILE && !isGameOver && intervalId === null"
         @click="startTimer"
         class="absolute left-0 right-0 bottom-0 top-0 z-9 bg-black bg-opacity-75 flex flex-col items-center justify-center cursor-pointer"
       >
@@ -175,11 +169,11 @@ onUnmounted(() => {
 
       <div
         :style="{
-          gridTemplateColumns: `repeat(${COL_LENGTH}, ${windowWidth <= 640 ? '1fr' : '15px'})`,
+          'grid-template-columns': `repeat(${COL_LENGTH}, ${IS_MOBILE ? '1fr' : '15px'})`,
         }"
         class="grid"
       >
-        <div v-for="(rows, i) in grid" :key="i">
+        <div v-for="(rows, i) in grid" :key="i" class="contents">
           <div
             v-for="(_, j) in rows"
             :key="j"
@@ -189,7 +183,7 @@ onUnmounted(() => {
                 ? 'bg-black'
                 : JSON.stringify([i, j]) === JSON.stringify(food)
                   ? 'bg-purple-500'
-                  : 'bg-blue-50',
+                  : 'bg-blue-200',
             ]"
           ></div>
         </div>
@@ -198,7 +192,7 @@ onUnmounted(() => {
     <!-- if game over -->
   </div>
 
-  <div v-if="windowWidth <= 640" class="flex flex-col gap-[3px] p-8">
+  <div v-if="IS_MOBILE" class="flex flex-col gap-[3px] p-8">
     <button class="flex justify-center" @click="changeDirection(UP)">
       <img alt="arrow up" class="w-[50px]" />
     </button>
