@@ -139,11 +139,12 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col items-center w-full">
-    <div class="p-6">
+    <div class="p-5">
       <img :src="Logo" alt="logo" class="w-[400px] rounded-2xl" />
     </div>
-    <p v-if="!IS_MOBILE" class="text-sm mb-6">
-      Press Enter or Space to start and pause. Press arrow keys (↑, →, ↓, ←) to change direction.
+    <p v-if="!IS_MOBILE" class="text-sm mb-6 text-center">
+      Press Enter or Space to start and pause. <br />Press arrow keys (↑, →, ↓, ←) to change
+      direction.
     </p>
 
     <div class="py-2 text-sm">Snake length: {{ snakeLength }}</div>
