@@ -50,6 +50,8 @@ const resetGameState = () => {
   intervalId.value = null
 }
 
+console.log('IS_MOBILE', IS_MOBILE)
+
 const startTimer = () => {
   if (isGameOver.value) resetGameState()
 
@@ -179,6 +181,13 @@ onUnmounted(() => {
         <img :src="PlayIcon" alt="play again" class="w-[70px]" />
       </div>
       <!-- end if not game over -->
+
+      <div
+        v-if="!IS_MOBILE && !isGameOver && intervalId === null"
+        class="absolute left-0 right-0 bottom-0 top-0 z-9 bg-black bg-opacity-75 flex flex-col items-center justify-center"
+      >
+        <div class="text-white">Click or press Enter or Space to play!</div>
+      </div>
 
       <div
         :style="{
