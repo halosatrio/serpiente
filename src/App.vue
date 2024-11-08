@@ -50,8 +50,6 @@ const resetGameState = () => {
   intervalId.value = null
 }
 
-console.log('IS_MOBILE', IS_MOBILE)
-
 const startTimer = () => {
   if (isGameOver.value) resetGameState()
 
@@ -67,7 +65,7 @@ const startTimer = () => {
       isGameOver.value = true
       stopTimer()
     }
-  }, 130)
+  }, 80)
   intervalId.value = id
 }
 
@@ -141,8 +139,12 @@ onUnmounted(() => {
 
 <template>
   <div class="flex flex-col items-center w-full">
-    <div class="p-5">
-      <img :src="Logo" alt="logo" class="w-[400px] rounded-2xl" />
+    <div :class="IS_MOBILE ? 'p-2' : 'p-5'">
+      <img
+        :src="Logo"
+        alt="logo"
+        :class="(IS_MOBILE ? 'w-[300px]' : 'w-[400px]') + ' rounded-2xl'"
+      />
     </div>
     <p v-if="!IS_MOBILE" class="text-sm mb-6 text-center">
       Press Enter or Space to start and pause. <br />Press arrow keys (↑, →, ↓, ←) to change
@@ -165,7 +167,7 @@ onUnmounted(() => {
           <div v-if="IS_MOBILE" class="text-white">Click to play again!</div>
           <div v-else class="text-white">Click or press Enter or Space to play again!</div>
         </div>
-        <img :src="PlayIcon" alt="play again" class="w-[70px]" />
+        <img :src="PlayIcon" alt="play again" class="mt-[4rem] w-[70px]" />
       </div>
       <!-- end if game over -->
 
@@ -175,7 +177,7 @@ onUnmounted(() => {
         @click="startTimer"
         class="absolute left-0 right-0 bottom-0 top-0 z-9 bg-black bg-opacity-75 flex flex-col items-center justify-center cursor-pointer"
       >
-        <div class="absolute top-[30px] flex flex-col items-center">
+        <div class="absolute top-[50px] flex flex-col items-center">
           <div class="text-white text-3xl mb-1">Click to play!</div>
         </div>
         <img :src="PlayIcon" alt="play again" class="w-[70px]" />
@@ -212,21 +214,21 @@ onUnmounted(() => {
       </div>
     </div>
     <!-- if game over -->
-    <div v-if="IS_MOBILE" class="flex flex-col gap-[3px] p-8">
+    <div v-if="IS_MOBILE" class="flex flex-col gap-[1rem] p-6">
       <button class="flex justify-center" @click="changeDirection(UP)">
-        <img :src="ArrowUp" alt="arrow up" class="w-[50px]" />
+        <img :src="ArrowUp" alt="arrow up" class="w-[80px]" />
       </button>
-      <div class="flex gap-[50px]">
+      <div class="flex gap-[100px]">
         <button @click="changeDirection(LEFT)">
-          <img :src="ArrowLeft" alt="arrow left" class="w-[50px]" />
+          <img :src="ArrowLeft" alt="arrow left" class="w-[80px]" />
         </button>
 
         <button @click="changeDirection(RIGHT)">
-          <img :src="ArrowRight" alt="arrow right" class="w-[50px]" />
+          <img :src="ArrowRight" alt="arrow right" class="w-[80px]" />
         </button>
       </div>
       <button class="flex justify-center" @click="changeDirection(DOWN)">
-        <img :src="ArrowDown" alt="arrow down" class="w-[50px]" />
+        <img :src="ArrowDown" alt="arrow down" class="w-[80px]" />
       </button>
     </div>
   </div>
